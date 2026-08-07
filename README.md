@@ -237,7 +237,7 @@ Additional Datasets
 
 | Role | Responsibility |
 |------|----------------|
-| Project Leader / AI Architect | AI, NLP, Recommendation Engine, System Architecture |
+| AI Architect | AI, NLP, Recommendation Engine, System Architecture |
 | Backend Engineer | Spring Boot APIs & Security |
 | Frontend Engineer | React UI Development |
 | Database Engineer | Database Design & Integration |
