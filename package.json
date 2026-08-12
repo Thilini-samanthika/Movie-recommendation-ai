@@ -1,0 +1,10 @@
+{
+  "name": "movie-recommendation-ai",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "cd frontend-app && npm start",
+    "build": "cd frontend-app && npm run build",
+    "test": "cd frontend-app && npm test"
+  }
+}
