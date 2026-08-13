@@ -1,0 +1,32 @@
+# Virtual environment
+venv/
+env/
+*.venv
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large model files (optional - see note below)
+# *.pkl
+
+# Logs
+*.log
+ai-service/models/cosine_similarity.pkl
