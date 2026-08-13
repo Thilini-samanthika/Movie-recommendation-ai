@@ -1,0 +1,9 @@
+{
+    "model": "TF-IDF + Cosine Similarity (Content-Based, Baseline)",
+    "k": 10,
+    "num_users_evaluated": 10,
+    "precision_at_10": 0.1695,
+    "recall_at_10": 0.0033,
+    "relevance_threshold": 4.0,
+    "f1_score_at_10": 0.0065
+}
