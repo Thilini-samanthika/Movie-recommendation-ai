@@ -1,12 +1,15 @@
 package movieai.controller;
 
+
 import movieai.dto.AuthResponse;
 import movieai.dto.LoginRequest;
 import movieai.dto.RegisterRequest;
 import movieai.entity.User;
 import movieai.repository.UserRepository;
+import movieai.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,6 +18,12 @@ public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest request) {
@@ -28,7 +37,7 @@ public class AuthController {
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
-                .password(request.getPassword()) // Plain text for now; JWT security phase will add BCrypt
+                .password(passwordEncoder.encode(request.getPassword())) // BCrypt Password Encryption
                 .role("ROLE_USER")
                 .build();
 
@@ -38,9 +47,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        return userRepository.findByUsername(request.getUsername())
-                .filter(u -> u.getPassword().equals(request.getPassword()))
-                .map(u -> ResponseEntity.ok(new AuthResponse("mock-jwt-token-xyz-123", "Login Successful")))
-                .orElse(ResponseEntity.status(401).body(new AuthResponse(null, "Invalid Username or Password")));
+        User user = userRepository.findByUsername(request.getUsername()).orElse(null);
+
+        if (user != null && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            String token = jwtUtils.generateToken(user.getUsername());
+            return ResponseEntity.ok(new AuthResponse(token, "Login Successful"));
+        }
+
+        return ResponseEntity.status(401).body(new AuthResponse(null, "Invalid Username or Password"));
     }
 }
