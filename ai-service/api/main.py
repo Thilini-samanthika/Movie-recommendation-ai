@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from recommendation.hybrid_recommender import hybrid_recommendation
@@ -10,6 +11,13 @@ app = FastAPI(
     description="AI Recommendation API"
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class RecommendationRequest(BaseModel):
     movie_title: str
