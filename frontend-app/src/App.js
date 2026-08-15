@@ -1,21 +1,36 @@
+
 import React, { useState } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+// Backend Base URL
+const BASE_URL = 'http://localhost:8080/api';
+
 
 function App() {
   // Navigation & Authentication States
   const [activeTab, setActiveTab] = useState('home');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState('guest'); // 'guest', 'user', 'admin'
+
   const [userProfile, setUserProfile] = useState({ name: 'User', email: '', preferredGenres: ['Sci-Fi', 'Action'], theme: 'Dark' });
+=======
+  const [userProfile, setUserProfile] = useState({ id: null, name: 'User', email: '', preferredGenres: ['Sci-Fi', 'Action'], theme: 'Dark' });
+
 
   // Filtering & Search States
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGenre, setFilterGenre] = useState('All');
   const [filterYear, setFilterYear] = useState('All');
   const [filterRating, setFilterRating] = useState('All');
+
   const [sortBy, setSortBy] = useState('popularity');
+
 
   // Selected Movie State (For Movie Details Modal View)
   const [selectedMovie, setSelectedMovie] = useState(null);
+
 
 // AI Recommendation Engine States
 const [recSearchTerm, setRecSearchTerm] = useState('');
@@ -28,6 +43,7 @@ const [recError, setRecError] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
   const [toastMessage, setToastMessage] = useState('');
+
 
   const fetchRecommendations = async (title) => {
   if (!title.trim()) return;
@@ -122,11 +138,20 @@ const [recError, setRecError] = useState('');
   const [watchlist, setWatchlist] = useState([{ id: 2, watched: false }]);
   const [recentlyViewed] = useState([1, 2]);
 
+  // Real Movies Catalog State from Backend
+  const [movies, setMovies] = useState([]);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+
+  // User Collections State
+  const [favorites, setFavorites] = useState([]);
+  const [watchlist, setWatchlist] = useState([]);
+
   // Trigger Toast Notifications
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3000);
   };
+
 
   // Auth Handlers
   const handleLogin = (e) => {
@@ -145,10 +170,115 @@ const [recError, setRecError] = useState('');
       showToast("👤 User Login Successful!");
     } else {
       showToast("❌ Please fill in all fields!");
+
+  // 1. Fetch Real Movies from Spring Boot Backend on Mount
+  useEffect(() => {
+    loadMovies();
+  }, []);
+
+  const loadMovies = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/movies`);
+      // Spring Boot Pagination returns { content: [...] } or list directly
+      const fetchedMovies = response.data.content || response.data;
+      
+      // Default fallback poster if not set in DB
+      const formattedMovies = fetchedMovies.map(m => ({
+        ...m,
+        posterUrl: m.posterUrl || "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg",
+        releaseYear: m.releaseYear || 2024,
+        similarityScore: m.similarityScore || 0.95
+      }));
+
+      setMovies(formattedMovies);
+    } catch (error) {
+      console.error('Error fetching movies from backend:', error);
+      showToast('⚠️ Could not connect to Spring Boot backend');
+    }
+  };
+
+  // 2. Fetch User Favorites from Backend
+  const loadFavorites = async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${BASE_URL}/favorites/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const favMovieIds = response.data.map(fav => fav.movie.id);
+      setFavorites(favMovieIds);
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
+
+  // 3. Real Auth Handlers (Register & Login)
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    if (!authName || !authEmail || !authPassword) {
+      showToast('❌ Please fill in all fields!');
+      return;
+    }
+
+    try {
+      await axios.post(`${BASE_URL}/auth/register`, {
+        username: authName,
+        email: authEmail,
+        password: authPassword
+      });
+      showToast('🎉 Account created! Please sign in.');
+      setActiveTab('login');
+    } catch (error) {
+      console.error('Registration failed:', error);
+      showToast('❌ Registration failed! User or Email may already exist.');
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!authEmail || !authPassword) {
+      showToast('❌ Please fill in all fields!');
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${BASE_URL}/auth/login`, {
+        username: authEmail, // Or email depending on backend setup
+        password: authPassword
+      });
+
+      const token = response.data.token;
+      if (token) {
+        localStorage.setItem('token', token);
+        setIsLoggedIn(true);
+
+        const isAdmin = authEmail === 'admin' || authEmail.includes('admin');
+        const role = isAdmin ? 'admin' : 'user';
+        const currentUserId = 1; // Default mapped userId
+
+        setUserRole(role);
+        setUserProfile({
+          id: currentUserId,
+          name: authEmail,
+          email: authEmail,
+          preferredGenres: ['Sci-Fi', 'Action'],
+          theme: 'Dark'
+        });
+
+        loadFavorites(currentUserId);
+        fetchAiRecommendations(currentUserId, 'Sci-Fi');
+
+        setActiveTab(isAdmin ? 'admin' : 'dashboard');
+        showToast(`👤 Welcome back, ${authEmail}!`);
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      showToast('❌ Invalid Username or Password!');
+
     }
   };
 
   const handleLogout = () => {
+
     setIsLoggedIn(false);
     setUserRole('guest');
     setActiveTab('home');
@@ -167,24 +297,98 @@ const [recError, setRecError] = useState('');
   };
 
   // Toggle Watchlist
+
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setUserRole('guest');
+    setActiveTab('home');
+    setFavorites([]);
+    showToast('Logged out successfully');
+  };
+
+  // 4. Real AI Recommendation Call
+  const fetchAiRecommendations = async (userId, genre) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${BASE_URL}/recommendations?userId=${userId}&genre=${genre}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('AI Engine Response:', response.data);
+      setAiRecommendations(response.data);
+    } catch (error) {
+      console.error('AI Engine integration error:', error);
+    }
+  };
+
+  // 5. Real Toggle Favorite
+  const toggleFavorite = async (movieId) => {
+    if (!isLoggedIn) {
+      showToast('⚠️ Please login to add favorites!');
+      setActiveTab('login');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    const isFav = favorites.includes(movieId);
+
+    try {
+      if (isFav) {
+        await axios.delete(`${BASE_URL}/favorites?userId=${userProfile.id}&movieId=${movieId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setFavorites(favorites.filter(id => id !== movieId));
+        showToast('Removed from Favorites');
+      } else {
+        await axios.post(`${BASE_URL}/favorites`, {
+          userId: userProfile.id,
+          movieId: movieId
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setFavorites([...favorites, movieId]);
+        showToast('❤️ Added to Favorites');
+      }
+    } catch (error) {
+      console.error('Favorite toggle error:', error);
+      showToast('❌ Error updating favorites');
+    }
+  };
+
+  // Toggle Watchlist (Local state)
+
   const toggleWatchlist = (movieId) => {
     const exists = watchlist.find(item => item.id === movieId);
     if (exists) {
       setWatchlist(watchlist.filter(item => item.id !== movieId));
+
       showToast("Removed from Watchlist");
     } else {
       setWatchlist([...watchlist, { id: movieId, watched: false }]);
       showToast("📌 Added to Watchlist");
+
+      showToast('Removed from Watchlist');
+    } else {
+      setWatchlist([...watchlist, { id: movieId, watched: false }]);
+      showToast('📌 Added to Watchlist');
+
     }
   };
 
   // Search & Filter Pipeline
   const filteredMovies = movies.filter(movie => {
+
     const matchesSearch = movie.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           movie.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesGenre = filterGenre === 'All' || movie.genre === filterGenre;
     const matchesYear = filterYear === 'All' || movie.releaseYear.toString() === filterYear;
-    const matchesRating = filterRating === 'All' || movie.rating >= parseFloat(filterRating);
+    const matchesRating = filterRating === 'All' || movie.rating >= parseFloat(filterRating
+    const titleMatch = movie.title ? movie.title.toLowerCase().includes(searchTerm.toLowerCase()) : false;
+    const descMatch = movie.description ? movie.description.toLowerCase().includes(searchTerm.toLowerCase()) : false;
+    const matchesSearch = titleMatch || descMatch;
+    const matchesGenre = filterGenre === 'All' || movie.genre === filterGenre;
+    const matchesYear = filterYear === 'All' || (movie.releaseYear && movie.releaseYear.toString() === filterYear);
+    const matchesRating = filterRating === 'All' || (movie.rating && movie.rating >= parseFloat(filterRating));
+
     return matchesSearch && matchesGenre && matchesYear && matchesRating;
   });
 
@@ -252,6 +456,7 @@ const [recError, setRecError] = useState('');
               </div>
             </div>
 
+
             {/* AI RECOMMENDATIONS CAROUSEL (IF LOGGED IN) */}
             {isLoggedIn && (
               <div style={{ marginBottom: '40px', padding: '24px', backgroundColor: 'rgba(56, 189, 248, 0.05)', borderRadius: '16px', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
@@ -272,14 +477,28 @@ const [recError, setRecError] = useState('');
             {['Trending', 'Popular', 'Top Rated', 'New Releases'].map((cat, idx) => (
               <div key={idx} style={{ marginBottom: '40px' }}>
                 <h3 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '16px' }}>{cat} Movies</h3>
+
+            {/* ALL MOVIES FROM DATABASE */}
+            <div style={{ marginBottom: '40px' }}>
+              <h3 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '16px' }}>Available in Database ({movies.length})</h3>
+              {movies.length === 0 ? (
+                <p style={{ color: '#94a3b8' }}>No movies found in database. Add movies via Swagger or Admin Panel.</p>
+              ) : (
+
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px' }}>
                   {movies.map(movie => (
                     <div key={movie.id} style={{ backgroundColor: 'rgba(30, 41, 59, 0.5)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                       <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '300px', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setSelectedMovie(movie)} />
                       <div style={{ padding: '16px' }}>
                         <h4 style={{ margin: '0 0 6px 0', fontSize: '16px' }}>{movie.title}</h4>
+
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700' }}>★ {movie.rating}</span>
+
+                        <p style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: '13px' }}>{movie.genre}</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700' }}>★ {movie.rating || 0}</span>
+
                           <button onClick={() => toggleFavorite(movie.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
                             {favorites.includes(movie.id) ? '❤️' : '🤍'}
                           </button>
@@ -288,8 +507,13 @@ const [recError, setRecError] = useState('');
                     </div>
                   ))}
                 </div>
+
               </div>
             ))}
+
+              )}
+            </div>
+
           </div>
         )}
 
@@ -297,9 +521,15 @@ const [recError, setRecError] = useState('');
         {activeTab === 'login' && (
           <div style={{ maxWidth: '400px', margin: '40px auto', backgroundColor: '#1e293b', padding: '40px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
             <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '8px' }}>Sign In</h2>
+
             <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '24px' }}>Demo Admin: admin@cinema.com / admin123</p>
             <form onSubmit={handleLogin}>
               <input type="email" placeholder="Email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '12px', borderRadius: '8px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box' }} />
+
+            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '24px' }}>Enter your Spring Boot username & password</p>
+            <form onSubmit={handleLogin}>
+              <input type="text" placeholder="Username" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '12px', borderRadius: '8px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box' }} />
+
               <input type="password" placeholder="Password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '12px', borderRadius: '8px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box' }} />
               <button type="submit" style={{ width: '100%', backgroundColor: '#e50914', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>Login</button>
             </form>
@@ -310,8 +540,13 @@ const [recError, setRecError] = useState('');
         {activeTab === 'register' && (
           <div style={{ maxWidth: '400px', margin: '40px auto', backgroundColor: '#1e293b', padding: '40px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)' }}>
             <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '8px' }}>Create Account</h2>
+
             <form onSubmit={handleLogin}>
               <input type="text" placeholder="Full Name" value={authName} onChange={(e) => setAuthName(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '12px', borderRadius: '8px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box' }} />
+
+            <form onSubmit={handleRegister}>
+              <input type="text" placeholder="Username" value={authName} onChange={(e) => setAuthName(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '12px', borderRadius: '8px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box' }} />
+
               <input type="email" placeholder="Email Address" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '12px', borderRadius: '8px', marginBottom: '16px', outline: 'none', boxSizing: 'border-box' }} />
               <input type="password" placeholder="Password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', color: 'white', padding: '12px', borderRadius: '8px', marginBottom: '24px', outline: 'none', boxSizing: 'border-box' }} />
               <button type="submit" style={{ width: '100%', backgroundColor: '#38bdf8', color: '#0f172a', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>Register</button>
@@ -342,7 +577,9 @@ const [recError, setRecError] = useState('');
           <div>
             <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '24px' }}>Search & Filter Catalog</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: '32px' }}>
+
               {/* Filter Sidebar */}
+
               <div style={{ backgroundColor: 'rgba(30,41,59,0.6)', padding: '24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <h3 style={{ margin: '0 0 16px 0', fontSize: '18px' }}>Filters</h3>
                 <div style={{ marginBottom: '16px' }}>
@@ -351,10 +588,15 @@ const [recError, setRecError] = useState('');
                     <option value="All">All Genres</option>
                     <option value="Sci-Fi">Sci-Fi</option>
                     <option value="Action">Action</option>
+
                     <option value="Cyberpunk">Cyberpunk</option>
+
+                    <option value="Drama">Drama</option>
+
                   </select>
                 </div>
               </div>
+
 
               {/* Movie Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
@@ -362,7 +604,10 @@ const [recError, setRecError] = useState('');
                   <div key={movie.id} onClick={() => setSelectedMovie(movie)} style={{ backgroundColor: 'rgba(30, 41, 59, 0.5)', borderRadius: '12px', padding: '12px', cursor: 'pointer' }}>
                     <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '260px', objectFit: 'cover', borderRadius: '8px' }} />
                     <h4 style={{ margin: '8px 0 4px 0', fontSize: '15px' }}>{movie.title}</h4>
+
                     <span style={{ color: '#f59e0b', fontSize: '12px' }}>★ {movie.rating}</span>
+
+
                   </div>
                 ))}
               </div>
@@ -401,6 +646,7 @@ const [recError, setRecError] = useState('');
             </div>
           </div>
         )}
+
 {/* ==================== 9. AI RECOMMENDATION PAGE (IMPROVED) ==================== */}
 {activeTab === 'recommendations' && (
   <div>
@@ -514,13 +760,34 @@ const [recError, setRecError] = useState('');
 )}
 
 
+
+        {/* ==================== 9. AI RECOMMENDATION PAGE ==================== */}
+        {activeTab === 'recommendations' && (
+          <div>
+            <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px' }}>AI Recommendation Engine</h2>
+            <p style={{ color: '#94a3b8', marginBottom: '32px' }}>Driven by Hidden Pattern Discovery (TF-IDF + Cosine Similarity).</p>
+            <div style={{ backgroundColor: 'rgba(30,27,75,0.8)', padding: '32px', borderRadius: '20px', border: '1px solid rgba(56,189,248,0.3)' }}>
+              <span style={{ backgroundColor: '#38bdf8', color: '#0f172a', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: '800' }}>AI ENGINE CONNECTED</span>
+              <h3 style={{ fontSize: '24px', marginTop: '12px' }}>Live ML Suggestions</h3>
+              <p style={{ color: '#cbd5e1' }}>{typeof aiRecommendations === 'string' ? aiRecommendations : JSON.stringify(aiRecommendations)}</p>
+            </div>
+          </div>
+        )}
+
+
         {/* ==================== 10. PROFILE PAGE ==================== */}
         {activeTab === 'profile' && (
           <div style={{ maxWidth: '500px', margin: '0 auto', backgroundColor: '#1e293b', padding: '40px', borderRadius: '20px' }}>
             <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '24px' }}>User Settings & Profile</h2>
+
             <p><strong>Name:</strong> {userProfile.name}</p>
             <p><strong>Email:</strong> {userProfile.email}</p>
             <p><strong>Preferred Genres:</strong> Sci-Fi, Action</p>
+
+            <p><strong>Username:</strong> {userProfile.name}</p>
+            <p><strong>Email:</strong> {userProfile.email}</p>
+            <p><strong>Status:</strong> Active JWT Session</p>
+
           </div>
         )}
 
@@ -528,7 +795,11 @@ const [recError, setRecError] = useState('');
         {activeTab === 'admin' && userRole === 'admin' && (
           <div>
             <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '24px' }}>System Admin Panel</h2>
+
             <p>Indexed Dataset Items: {movies.length}</p>
+
+            <p>Indexed Database Records: {movies.length}</p>
+
           </div>
         )}
 
@@ -536,10 +807,17 @@ const [recError, setRecError] = useState('');
         {selectedMovie && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
             <div style={{ backgroundColor: '#1e293b', padding: '32px', borderRadius: '20px', maxWidth: '600px', width: '100%', border: '1px solid rgba(255,255,255,0.1)' }}>
+
               <h2 style={{ fontSize: '28px', margin: '0 0 12px 0' }}>{selectedMovie.title} ({selectedMovie.releaseYear})</h2>
               <p style={{ color: '#cbd5e1', fontSize: '14px', lineHeight: '1.6' }}>{selectedMovie.description}</p>
               <p><strong>Director:</strong> {selectedMovie.director}</p>
               <p><strong>Cast:</strong> {selectedMovie.cast}</p>
+
+              <h2 style={{ fontSize: '28px', margin: '0 0 12px 0' }}>{selectedMovie.title}</h2>
+              <p style={{ color: '#cbd5e1', fontSize: '14px', lineHeight: '1.6' }}>{selectedMovie.description}</p>
+              <p><strong>Genre:</strong> {selectedMovie.genre}</p>
+              <p><strong>Rating:</strong> ★ {selectedMovie.rating || 0}</p>
+
               <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
                 <button onClick={() => toggleFavorite(selectedMovie.id)} style={{ backgroundColor: '#e50914', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer' }}>❤️ Favorite</button>
                 <button onClick={() => toggleWatchlist(selectedMovie.id)} style={{ backgroundColor: '#38bdf8', color: '#0f172a', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' }}>📌 Watchlist</button>
@@ -551,7 +829,11 @@ const [recError, setRecError] = useState('');
 
         {/* COMPONENT: FOOTER */}
         <footer style={{ marginTop: '80px', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '32px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+
           <p>© 2026 Intelligent Movie Recommendation System </p>
+
+          <p>© 2026 Horizon Campus - Intelligent Movie Recommendation System (NI Mini Project)</p>
+
         </footer>
 
       </div>
