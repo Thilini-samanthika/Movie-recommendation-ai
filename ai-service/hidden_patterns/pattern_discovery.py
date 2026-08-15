@@ -17,6 +17,7 @@ def load_data():
     return movie_data
 
 
+# ---------- 1. Genre Co-occurrence Patterns ---
 
 def genre_cooccurrence(movie_data, top_n=15):
     """Find which genre pairs appear together most often."""
