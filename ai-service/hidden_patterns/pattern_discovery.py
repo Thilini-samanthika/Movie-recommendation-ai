@@ -17,7 +17,7 @@ def load_data():
     return movie_data
 
 
-# ---------- 1. Genre Co-occurrence Patterns ----------
+
 def genre_cooccurrence(movie_data, top_n=15):
     """Find which genre pairs appear together most often."""
     pair_counts = Counter()
@@ -30,7 +30,7 @@ def genre_cooccurrence(movie_data, top_n=15):
     return pd.DataFrame(top_pairs, columns=["genre_pair", "co_occurrence_count"])
 
 
-# ---------- 2. Movie Clustering (Hidden Similarity Groups) ----------
+
 def cluster_movies(movie_data, n_clusters=10, random_state=42):
     """Group movies into clusters using TF-IDF content vectors + KMeans."""
     tfidf = TfidfVectorizer(stop_words="english", max_features=5000)
@@ -45,7 +45,7 @@ def cluster_movies(movie_data, n_clusters=10, random_state=42):
     return movie_data, tfidf, kmeans
 
 
-# ---------- 3. Cluster Themes (Top Keywords per Cluster) ----------
+
 def get_cluster_themes(movie_data, tfidf, kmeans, top_k=8):
     """Identify the top keywords that define each cluster's theme."""
     feature_names = np.array(tfidf.get_feature_names_out())
@@ -65,7 +65,7 @@ def get_cluster_themes(movie_data, tfidf, kmeans, top_k=8):
     return themes
 
 
-# ---------- 4. Similar Movie Cluster Lookup ----------
+
 def get_cluster_for_movie(movie_data, title):
     """Return the cluster ID and cluster-mates for a given movie title."""
     match = movie_data[movie_data["clean_title"] == title]
@@ -94,7 +94,8 @@ def run_pattern_discovery(n_clusters=10):
         "cluster_themes": cluster_themes,
         "preference_patterns": preference_patterns,
     }
-    # ---------- 5. User Preference Patterns ----------
+    
+    
 def user_preference_patterns(movie_data, ratings_path=None, min_ratings=20, top_n=10):
     """Find which genres each active user segment rates highly, revealing preference clusters."""
     if ratings_path is None:
@@ -103,12 +104,12 @@ def user_preference_patterns(movie_data, ratings_path=None, min_ratings=20, top_
     ratings = pd.read_csv(ratings_path)
     merged = ratings.merge(movie_data[["movieId", "genres"]], on="movieId", how="inner")
 
-    # Keep only users with a meaningful rating history
+    
     user_counts = merged["userId"].value_counts()
     active_users = user_counts[user_counts >= min_ratings].index
     merged = merged[merged["userId"].isin(active_users)]
 
-    # Expand genre strings into individual rows
+    
     merged = merged.assign(genre=merged["genres"].str.split()).explode("genre")
 
     genre_avg_rating = (
