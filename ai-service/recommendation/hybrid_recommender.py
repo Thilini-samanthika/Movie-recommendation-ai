@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+from explainable_ai.explainer import RecommendationExplainer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MOVIE_DATA_PATH = os.path.join(BASE_DIR, "..", "..", "datasets", "processed", "movie_data.csv")
@@ -36,6 +37,11 @@ def build_model(movie_data):
 # Load once when this module is imported
 movie_data, ratings = load_data()
 content_similarity, movie_indices = build_model(movie_data)
+explainer = RecommendationExplainer(
+    movie_data,
+    title_col="clean_title",
+    genre_col="genres",
+)
 
 
 def get_content_scores(title):
@@ -65,19 +71,29 @@ def hybrid_recommendation(title, top_n=10):
         collab = collaborative_score(movie["movieId"])
         hybrid = similarity * 0.7 + collab * 0.3
 
+        explanation = explainer.explain(
+            source_title=title,
+            recommended_row=movie,
+            content_score=float(similarity),
+            collaborative_score=float(collab),
+            hybrid_score=float(hybrid),
+        )
+
         recommendations.append([
             movie["clean_title"],
             movie["genres"],
             round(float(similarity), 3),
             round(float(collab), 3),
-            round(float(hybrid), 3)
+            round(float(hybrid), 3),
+            explanation["reasons"],
+            explanation["confidence"],
         ])
 
     recommendations = sorted(recommendations, key=lambda x: x[4], reverse=True)
 
     return pd.DataFrame(
         recommendations[:top_n],
-        columns=["clean_title", "genres", "content_score", "collaborative_score", "hybrid_score"]
+        columns=["clean_title", "genres", "content_score", "collaborative_score", "hybrid_score", "reasons", "confidence"]
     )
 
 
