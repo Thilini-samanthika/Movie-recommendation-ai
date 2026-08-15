@@ -26,8 +26,9 @@ def build_model(movie_data):
     tfidf_matrix = tfidf.fit_transform(movie_data["content"])
     content_similarity = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
+    # Normalize titles (trim + lowercase) so lookups aren't case/whitespace sensitive
     movie_indices = pd.Series(
-        movie_data.index, index=movie_data["clean_title"]
+        movie_data.index, index=movie_data["clean_title"].str.strip().str.lower()
     )
     movie_indices = movie_indices[~movie_indices.index.duplicated(keep="first")]
 
@@ -59,10 +60,14 @@ def collaborative_score(movie_id):
 
 
 def hybrid_recommendation(title, top_n=10):
-    if title not in movie_indices:
+    # Normalize the incoming title the same way the index was built,
+    # so "toy story", "Toy Story", " Toy Story " all match correctly.
+    normalized_title = title.strip().lower()
+
+    if normalized_title not in movie_indices:
         return "Movie not found."
 
-    scores = get_content_scores(title)
+    scores = get_content_scores(normalized_title)
 
     recommendations = []
 
@@ -72,7 +77,7 @@ def hybrid_recommendation(title, top_n=10):
         hybrid = similarity * 0.7 + collab * 0.3
 
         explanation = explainer.explain(
-            source_title=title,
+            source_title=normalized_title,
             recommended_row=movie,
             content_score=float(similarity),
             collaborative_score=float(collab),
@@ -99,3 +104,4 @@ def hybrid_recommendation(title, top_n=10):
 
 if __name__ == "__main__":
     print(hybrid_recommendation("Toy Story"))
+    print(hybrid_recommendation("toy story"))  # case-insensitive test
