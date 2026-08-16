@@ -38,8 +38,8 @@ public class SecurityConfig {
             }))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // මෙතනට "/api-docs/**" එකතු කර ඇත
-                .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html", "/api/v1/health").permitAll() 
+                
+                .requestMatchers("/api/auth/**", "/api/movies/**", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**", "/swagger-ui.html", "/api/v1/health").permitAll() 
                 .anyRequest().authenticated() 
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
