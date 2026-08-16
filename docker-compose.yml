@@ -1,0 +1,87 @@
+services:
+  # MySQL Database Service
+  mysql-db:
+    image: mysql:8.0
+    container_name: movie_recommendation_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-moviedb}
+      MYSQL_USER: ${MYSQL_USER:-movieuser}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-moviepass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - movie_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Python AI Recommendation Microservice
+  ai-service:
+    build:
+      context: .
+      dockerfile: deployment/docker/ai-service.Dockerfile
+    container_name: movie_ai_service
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    networks:
+      - movie_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Spring Boot Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../deployment/docker/backend.Dockerfile
+    container_name: movie_backend_service
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/${MYSQL_DATABASE:-moviedb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-movieuser}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-moviepass}
+      AI_SERVICE_URL: http://ai-service:8000
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    networks:
+      - movie_network
+
+  # React Frontend Web Application
+  frontend:
+    build:
+      context: ./frontend-app
+      dockerfile: ../deployment/docker/frontend.Dockerfile
+    container_name: movie_frontend_service
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - ai-service
+    networks:
+      - movie_network
+
+networks:
+  movie_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local

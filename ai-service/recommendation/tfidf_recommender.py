@@ -4,7 +4,10 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "..", "..", "datasets", "processed", "movie_data.csv")
+LOCAL_DATA_PATH = os.path.join(BASE_DIR, "..", "..", "datasets", "processed", "movie_data.csv")
+CONTAINER_DATA_PATH = "/datasets/processed/movie_data.csv"
+DATA_PATH = CONTAINER_DATA_PATH if os.path.exists(CONTAINER_DATA_PATH) else LOCAL_DATA_PATH
+
 
 
 def load_data():

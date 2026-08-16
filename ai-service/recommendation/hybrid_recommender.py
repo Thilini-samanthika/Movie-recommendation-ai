@@ -6,8 +6,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 from explainable_ai.explainer import RecommendationExplainer
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MOVIE_DATA_PATH = os.path.join(BASE_DIR, "..", "..", "datasets", "processed", "movie_data.csv")
-RATINGS_PATH = os.path.join(BASE_DIR, "..", "..", "datasets", "raw", "movielens", "ratings.csv")
+LOCAL_MOVIE_DATA_PATH = os.path.join(BASE_DIR, "..", "..", "datasets", "processed", "movie_data.csv")
+CONTAINER_MOVIE_DATA_PATH = "/datasets/processed/movie_data.csv"
+MOVIE_DATA_PATH = CONTAINER_MOVIE_DATA_PATH if os.path.exists(CONTAINER_MOVIE_DATA_PATH) else LOCAL_MOVIE_DATA_PATH
+
+LOCAL_RATINGS_PATH = os.path.join(BASE_DIR, "..", "..", "datasets", "raw", "movielens", "ratings.csv")
+CONTAINER_RATINGS_PATH = "/datasets/raw/movielens/ratings.csv"
+RATINGS_PATH = CONTAINER_RATINGS_PATH if os.path.exists(CONTAINER_RATINGS_PATH) else LOCAL_RATINGS_PATH
+
 
 
 def load_data():
