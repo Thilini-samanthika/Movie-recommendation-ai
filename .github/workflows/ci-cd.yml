@@ -83,7 +83,7 @@ jobs:
       - name: Install Frontend Dependencies & Build
         run: |
           cd frontend-app
-          npm ci
+          npm install
           CI=false npm run build
 
   # -------------------------------------------------------------
