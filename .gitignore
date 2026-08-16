@@ -34,3 +34,4 @@ ai-service/models/cosine_similarity.pkl
 imdb_reviews.csv
 
 imdb_reviews.csv
+venv/
