@@ -1,98 +1,74 @@
-#  Quality Assurance (QA) & System Testing Documentation
+Quality Assurance and System Testing Guide
 
-This directory contains the complete automated testing infrastructure engineered for the **AI-Powered Personalized Movie Recommendation System**, created under the **QA, DevOps & Research Engineer** role responsibilities.
+This folder contains all the test scripts and testing configurations for the AI-Powered Movie Recommendation System.
 
----
+Directory Structure
 
-##  Directory Overview
-
-```
 tests/
-├── api/
-│   ├── postman_collection.json      # Comprehensive API Test Collection
-│   └── postman_environment.json     # Dynamic API Test Environment Config
-├── system/
-│   └── system_integration_test.py   # E2E Integration & Automated Regression Suite
-├── performance/
-│   ├── load_test_plan.jmx           # Apache JMeter Load & Stress Test Plan
-│   └── locustfile.py                # Locust Python-based Performance Test Script
-└── README.md                        # QA Documentation & Test Execution Instructions
-```
+  api/
+    postman_collection.json - API test collection for endpoints
+    postman_environment.json - Environment configuration for API tests
+  system/
+    system_integration_test.py - Integration and regression test script
+  performance/
+    load_test_plan.jmx - JMeter performance test script
+    locustfile.py - Locust load test script
+  README.md - Testing instructions
 
----
 
-##  1. API Testing with Postman & Newman CLI
+1. API Testing with Postman and Newman
 
-The API collection covers authentication, movie querying, AI recommendation generation, and sentiment analysis.
+The Postman collection tests all major endpoints including authentication, movie search, AI recommendations, and review sentiment analysis.
 
-### Interactive Execution (Postman App)
-1. Launch **Postman**.
-2. Click **Import** and select `tests/api/postman_collection.json` and `tests/api/postman_environment.json`.
-3. Select the **Local Development Environment**.
-4. Run individual endpoints or execute the entire collection via **Collection Runner**.
+To test using Postman GUI:
+1. Open Postman.
+2. Import tests/api/postman_collection.json and tests/api/postman_environment.json.
+3. Choose the Local Development Environment.
+4. Run the requests individually or use the Collection Runner.
 
-### Automated Execution (Newman CLI)
-To execute API test suites headlessly in terminal or CI/CD pipelines:
-
-```bash
-# Install Newman globally (if not installed)
+To test automatically from the command line:
+First install Newman:
 npm install -g newman
 
-# Run API Collection against Local Environment
+Then run the API collection:
 newman run tests/api/postman_collection.json -e tests/api/postman_environment.json --reporters cli,json
-```
 
----
 
-##  2. System & Integration Automated Testing
+2. System Integration Testing
 
-Automated end-to-end integration tests validate communication between microservices and enforce API contract assertions.
+The python test script checks communication between microservices and verifies response structures.
 
-### Execution Instructions
-
-```bash
-# Ensure Python AI service is running on port 8000
+To run system integration tests:
+Make sure the Python AI service is running on port 8000, then execute:
 python tests/system/system_integration_test.py
-```
 
----
 
-##  3. Performance & Load Testing
+3. Performance and Load Testing
 
-### Option A: Apache JMeter (`.jmx`)
-The `load_test_plan.jmx` simulates 50 concurrent virtual users executing recommendation and sentiment endpoints.
+Option A: Apache JMeter (.jmx)
+The load_test_plan.jmx file simulates 50 concurrent users hitting recommendation and sentiment endpoints.
 
-#### GUI Mode:
-```bash
+GUI Mode:
 jmeter -t tests/performance/load_test_plan.jmx
-```
 
-#### Headless CLI Mode (Recommended for Benchmarking):
-```bash
+Command Line Mode:
 jmeter -n -t tests/performance/load_test_plan.jmx -l tests/performance/results.jtl -e -o tests/performance/html_report
-```
 
----
+Option B: Locust Load Testing (locustfile.py)
+Locust provides an interactive dashboard to monitor performance metrics.
 
-### Option B: Locust Load Testing (`locustfile.py`)
-Locust provides real-time interactive performance monitoring.
-
-```bash
-# Install Locust
+Install Locust:
 pip install locust
 
-# Launch Locust web UI targeting AI Service
+Run Locust targeting the AI service:
 locust -f tests/performance/locustfile.py --host http://localhost:8000
-```
-Open browser at `http://localhost:8089` to configure virtual users, spawn rates, and monitor real-time RPS / percentile latency graphs.
 
----
+Open http://localhost:8089 in your browser to set user count and start the load test.
 
-##  Test Pass Criteria & Quality Gates
 
-| Test Suite | Metric / Threshold | Pass Condition |
-|------------|-------------------|----------------|
-| **API Testing (Newman)** | Assertion Pass Rate | **100%** |
-| **System Integration** | HTTP Status Codes | **200 OK / 201 Created** |
-| **Performance (JMeter)** | P95 Response Time | **< 300 ms** |
-| **Performance (Locust)** | Error Rate under Load | **< 0.5%** |
+Testing Pass Criteria
+
+API Testing (Newman): 100% assertions passing
+System Integration: Status code 200 OK / 201 Created
+Performance (JMeter): P95 response time under 300 ms
+Performance (Locust): Error rate under 0.5%
