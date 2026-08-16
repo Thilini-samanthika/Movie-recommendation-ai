@@ -1,251 +1,82 @@
-#  AI-Powered Personalized Movie Recommendation System Using NLP, Deep Learning, Sentiment Analysis, and Hybrid Recommendation
+# AI-Powered Personalized Movie Recommendation System
 
-##  Project Overview
+Coursework: Microservices-Based System Architecture  
+Module: Service-Oriented Computing (IT41033 - NIA Mini Project)  
 
-The **AI-Powered Personalized Movie Recommendation System** is an intelligent web-based application designed to provide highly personalized movie recommendations by combining **Machine Learning, Natural Language Processing (NLP), Deep Learning, Sentiment Analysis, and Hybrid Recommendation Techniques**.
+Project Overview
 
-Unlike traditional recommendation systems that rely only on popularity or user ratings, this system analyzes movie content, user preferences, viewing history, and sentiment extracted from user reviews to generate accurate and explainable recommendations.
+The AI-Powered Personalized Movie Recommendation System is a distributed microservices web application designed to provide personalized movie recommendations using Machine Learning, Natural Language Processing (NLP), Deep Learning, Sentiment Analysis, and Hybrid Recommendation techniques.
 
-This project extends the traditional **Content-Based Recommendation System** by integrating advanced Artificial Intelligence techniques while preserving the core recommendation engine based on **TF-IDF**, **Cosine Similarity**, and **Hidden Pattern Discovery**.
+System Architecture and Components
 
----
+The system architecture consists of a client application, an API gateway and security layer, a Spring Boot backend API service, a Python AI recommendation microservice, and a MySQL relational database.
 
-#  Objectives
+Client Application (React Frontend) -> Nginx Reverse Proxy (Port 80) -> Spring Boot Backend API (Port 8080) -> Python AI Service (Port 8000) -> MySQL 8.0 Database (Port 3306)
 
-## Main Objective
 
-Develop an intelligent movie recommendation platform capable of generating personalized movie recommendations using AI-powered recommendation techniques.
+Team Member Work Breakdown Matrix
 
-## Specific Objectives
+| Student Name | Role | Microservice / Domain | Key Responsibilities and Endpoints |
+|--------------|------|-----------------------|------------------------------------|
+| Student 1 | Gateway Lead / Member | User and Auth Service | API Gateway, OAuth 2.0 / JWT Auth, Rate Limiting. Endpoints: /api/auth/login, /api/auth/register |
+| Student 2 | Backend Engineer / Member | Movie Management Service | API Key auth, Spring Boot REST API. Endpoints: /api/movies, /api/movies/{id}, /api/movies/search |
+| Student 3 | Recommender Engineer / Member | Recommendation Service | API Key auth, Hybrid RS Engine. Endpoints: /recommend, /api/recommendations |
+| Student 4 | NLP Engineer / Member | Sentiment Analysis Service | API Key auth, NLP Sentiment Model. Endpoints: /sentiment, /api/reviews |
+| Student 5 | QA, DevOps & Research Engineer | Infrastructure, QA & Testing | Docker containerization, docker-compose orchestration, GitHub Actions CI/CD, Postman/JMeter test suites |
 
-- Build a scalable web-based recommendation platform.
-- Implement Content-Based Recommendation using TF-IDF and Cosine Similarity.
-- Discover hidden relationships between movies using Hidden Pattern Discovery.
-- Integrate NLP techniques for semantic movie understanding.
-- Implement Hybrid Recommendation by combining multiple recommendation approaches.
-- Perform Sentiment Analysis on movie reviews.
-- Improve recommendation accuracy using Deep Learning models.
-- Provide Explainable AI recommendations.
-- Visualize recommendation analytics using interactive dashboards.
 
----
+Prerequisites and Instructions to Run via Docker
 
-#  Core Features
+Prerequisites:
+- Docker Engine (v20.10 or higher)
+- Docker Compose (v2.0 or higher)
 
-### User Features
+Step 1: Clone the repository
+git clone https://github.com/Thilini-samanthika/Movie-recommendation-ai.git
+cd Movie-recommendation-ai
 
-- User Registration
-- Secure Login
-- User Profile Management
-- Movie Search
-- Genre Filtering
-- Movie Details
-- Personalized Recommendations
-- Favorite Movies
-- Watch History
-- Movie Ratings
-- Movie Reviews
-- Explain Recommendation
+Step 2: Start all microservices with a single command
+docker-compose up -d --build
 
----
+Step 3: Verify running containers
+docker-compose ps
 
-### AI Features
 
-- Content-Based Recommendation
-- TF-IDF Feature Extraction
-- Cosine Similarity
-- Hidden Pattern Discovery
-- NLP Text Processing
-- Semantic Search
-- Sentence Embeddings
-- Hybrid Recommendation
-- Sentiment Analysis
-- Deep Learning Recommendation
-- Explainable AI
+Interactive Swagger UI and API Documentation URLs
 
----
+- Spring Boot Backend Swagger UI: http://localhost:8080/swagger-ui/index.html
+- Spring Boot OpenAPI JSON Docs: http://localhost:8080/v3/api-docs
+- Python FastAPI Interactive Docs: http://localhost:8000/docs
+- Python FastAPI ReDoc Documentation: http://localhost:8000/redoc
 
-### Admin Features
 
-- User Management
-- Movie Management
-- Dataset Management
-- Analytics Dashboard
-- Recommendation Statistics
-- System Monitoring
+API Security, Headers, and Test Credentials
 
----
+API Key Security Header Format:
+X-API-KEY: movieai-secret-api-key-2026
 
-#  Artificial Intelligence Pipeline
+OAuth 2.0 / JWT Authorization Header Format:
+Authorization: Bearer <your_jwt_token>
 
-Dataset Collection
+Default Test Credentials:
+- Username: testuser_qa
+- Password: Password123!
+- Test API Key: movieai-secret-api-key-2026
 
-↓
 
-Data Exploration
+Testing Infrastructure
 
-↓
+The repository includes complete automated test suites inside the tests/ directory:
+- Postman Collection: tests/api/postman_collection.json
+- Postman Environment: tests/api/postman_environment.json
+- Automated System Integration Script: tests/system/system_integration_test.py
+- Apache JMeter Load Test Plan: tests/performance/load_test_plan.jmx
+- Locust Performance Test Script: tests/performance/locustfile.py
 
-Data Cleaning
+To execute tests via Newman CLI:
+newman run tests/api/postman_collection.json -e tests/api/postman_environment.json
 
-↓
 
-Feature Engineering
+License
 
-↓
-
-Natural Language Processing
-
-↓
-
-TF-IDF Vectorization
-
-↓
-
-Cosine Similarity
-
-↓
-
-Deep Learning Models
-
-↓
-
-Hybrid Recommendation
-
-↓
-
-Sentiment Analysis
-
-↓
-
-Explainable AI
-
-↓
-
-Recommendation API
-
----
-
-#  System Architecture
-
-Frontend
-
-↓
-
-Spring Boot REST API
-
-↓
-
-Python AI Recommendation Engine
-
-↓
-
-Machine Learning Models
-
-↓
-
-MySQL Database
-
----
-
-#  Technology Stack
-
-| Layer | Technology |
-|--------|------------|
-| Frontend | React + TypeScript |
-| Backend | Spring Boot |
-| AI | Python |
-| Machine Learning | Scikit-learn |
-| Deep Learning | TensorFlow / PyTorch |
-| NLP | NLTK, SpaCy, Sentence Transformers |
-| Database | MySQL |
-| API Testing | Postman |
-| Version Control | Git + GitHub |
-| Deployment | Docker |
-
----
-
-#  Project Structure
-
-```
-movie-recommendation-ai/
-
-frontend/
-
-backend/
-
-ai-service/
-
-database/
-
-datasets/
-
-tests/
-
-docs/
-
-docker/
-```
-
----
-
-#  Machine Learning Techniques
-
-### Baseline Model
-
-- TF-IDF
-- Cosine Similarity
-
-### Advanced Models
-
-- Hybrid Recommendation
-- Collaborative Filtering
-- Deep Learning Recommendation
-- Sentiment Analysis
-- Hidden Pattern Discovery
-
----
-
-#  Dataset
-
-Primary Dataset
-
-- MovieLens Dataset
-
-Additional Datasets
-
-- Kaggle Movie Metadata
-- IMDb Reviews Dataset
-- TMDB Dataset
-
----
-
-#  Project Modules
-
-- Authentication Module
-- Movie Management Module
-- Recommendation Engine
-- NLP Module
-- Deep Learning Module
-- Sentiment Analysis Module
-- Analytics Dashboard
-- Explainable AI Module
-
----
-
-#  Development Team
-
-| Role | Responsibility |
-|------|----------------|
-| AI Architect | AI, NLP, Recommendation Engine, System Architecture |
-| Backend Engineer | Spring Boot APIs & Security |
-| Frontend Engineer | React UI Development |
-| Database Engineer | Database Design & Integration |
-| QA & Research Engineer | Testing, Documentation & Deployment |
-
----
-
-
-#  License
-
-This project is developed for academic purposes as part of the **IT41033 - NIA Mini Project**.
+Developed for academic evaluation as part of the Service-Oriented Computing module (IT41033 - NIA Mini Project).
