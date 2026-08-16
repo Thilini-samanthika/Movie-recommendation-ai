@@ -40,75 +40,13 @@ function App() {
   const [authName, setAuthName] = useState('');
   const [toastMessage, setToastMessage] = useState('');
 
-  // ---------- Movie Catalog (seeded with sample data, replaced by backend on load) ----------
-  const [movies, setMovies] = useState([
-    {
-      id: 1,
-      title: 'Interstellar',
-      releaseYear: 2014,
-      genre: 'Sci-Fi',
-      rating: 8.7,
-      duration: '2h 49m',
-      director: 'Christopher Nolan',
-      cast: 'Matthew McConaughey, Anne Hathaway',
-      similarityScore: 0.96,
-      posterUrl: 'https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg',
-      description: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
-      reasons: ['Space Adventure Pattern Match', 'Christopher Nolan Theme Correlation'],
-      category: 'Trending'
-    },
-    {
-      id: 2,
-      title: 'Inception',
-      releaseYear: 2010,
-      genre: 'Sci-Fi',
-      rating: 8.8,
-      duration: '2h 28m',
-      director: 'Christopher Nolan',
-      cast: 'Leonardo DiCaprio, Joseph Gordon-Levitt',
-      similarityScore: 0.91,
-      posterUrl: 'https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg',
-      description: 'A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea.',
-      reasons: ['Mind-Bending Narrative', 'TF-IDF High Keyword Score'],
-      category: 'Popular'
-    },
-    {
-      id: 3,
-      title: 'The Dark Knight',
-      releaseYear: 2008,
-      genre: 'Action',
-      rating: 9.0,
-      duration: '2h 32m',
-      director: 'Christopher Nolan',
-      cast: 'Christian Bale, Heath Ledger',
-      similarityScore: 0.85,
-      posterUrl: 'https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_.jpg',
-      description: 'When the menace known as the Joker wreaks havoc on Gotham, Batman must accept one of the greatest tests.',
-      reasons: ['Gritty Action Pattern', 'DC Comic Universe Correlation'],
-      category: 'Top Rated'
-    },
-    {
-      id: 4,
-      title: 'Blade Runner 2049',
-      releaseYear: 2017,
-      genre: 'Cyberpunk',
-      rating: 8.0,
-      duration: '2h 44m',
-      director: 'Denis Villeneuve',
-      cast: 'Ryan Gosling, Harrison Ford',
-      similarityScore: 0.89,
-      posterUrl: 'https://m.media-amazon.com/images/M/MV5BNzA1Njg4NjYtODg3MS00OTJyLTgwYTgtNzA0NDNmNTM0M2JhXkEyXkFqcGdeQXVyMjg2MTMyNTM@._V1_.jpg',
-      description: "Young Blade Runner K's discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard.",
-      reasons: ['Atmospheric Neo-Noir Visuals', 'Sci-Fi Future Dystopia Match'],
-      category: 'New Releases'
-    }
-  ]);
+  // ---------- Movie Catalog ----------
+  const [movies, setMovies] = useState([]);
   const [aiRecommendations, setAiRecommendations] = useState([]);
 
   // ---------- User Collections ----------
   const [favorites, setFavorites] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
-  const [recentlyViewed] = useState([1, 2]);
 
   // ---------- Toast Helper ----------
   const showToast = (msg) => {
@@ -123,14 +61,13 @@ function App() {
 
   const loadMovies = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/movies`);
+      const response = await axios.get(`${BASE_URL}/movies?size=60`);
       const fetchedMovies = response.data.content || response.data;
 
       const formattedMovies = fetchedMovies.map((m) => ({
         ...m,
-        posterUrl:
-          m.posterUrl ||
-          'https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg',
+        // Uses the official TMDB poster link updated in MySQL
+        posterUrl: m.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60',
         releaseYear: m.releaseYear || 2024,
         similarityScore: m.similarityScore || 0.95
       }));
@@ -140,7 +77,7 @@ function App() {
       }
     } catch (error) {
       console.error('Error fetching movies from backend:', error);
-      showToast('⚠️ Could not connect to backend — showing sample movies');
+      showToast('⚠️ Could not connect to backend');
     }
   };
 
@@ -232,7 +169,7 @@ function App() {
     showToast('Logged out successfully');
   };
 
-  // ---------- 4. Real AI Recommendation Call (personalized, by userId/genre) ----------
+  // ---------- 4. AI Recommendation Call (personalized, by userId/genre) ----------
   const fetchAiRecommendations = async (userId, genre) => {
     try {
       const token = localStorage.getItem('token');
@@ -322,7 +259,7 @@ function App() {
     const titleMatch = movie.title ? movie.title.toLowerCase().includes(searchTerm.toLowerCase()) : false;
     const descMatch = movie.description ? movie.description.toLowerCase().includes(searchTerm.toLowerCase()) : false;
     const matchesSearch = titleMatch || descMatch;
-    const matchesGenre = filterGenre === 'All' || movie.genre === filterGenre;
+    const matchesGenre = filterGenre === 'All' || (movie.genre && movie.genre.includes(filterGenre));
     const matchesYear = filterYear === 'All' || (movie.releaseYear && movie.releaseYear.toString() === filterYear);
     const matchesRating = filterRating === 'All' || (movie.rating && movie.rating >= parseFloat(filterRating));
     return matchesSearch && matchesGenre && matchesYear && matchesRating;
@@ -461,7 +398,7 @@ function App() {
               <div style={{ marginBottom: '40px', padding: '24px', backgroundColor: 'rgba(56, 189, 248, 0.05)', borderRadius: '16px', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
                 <h3 style={{ margin: '0 0 16px 0', color: '#38bdf8' }}>✨ AI Recommended For You ({userProfile.name})</h3>
                 <div style={{ display: 'flex', gap: '20px', overflowX: 'auto' }}>
-                  {movies.map((movie) => (
+                  {movies.slice(0, 10).map((movie) => (
                     <div key={movie.id} onClick={() => setSelectedMovie(movie)} style={{ minWidth: '200px', cursor: 'pointer', backgroundColor: '#1e293b', borderRadius: '12px', padding: '12px' }}>
                       <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '240px', objectFit: 'cover', borderRadius: '8px' }} />
                       <h4 style={{ margin: '8px 0 4px 0', fontSize: '15px' }}>{movie.title}</h4>
@@ -474,37 +411,29 @@ function App() {
 
             {/* ALL MOVIES IN DATABASE */}
             <div style={{ marginBottom: '40px' }}>
-              <h3 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '16px' }}>Available in Database ({movies.length})</h3>
-              {movies.length === 0 && <p style={{ color: '#94a3b8' }}>No movies found in database. Add movies via Swagger or Admin Panel.</p>}
-            </div>
-
-            {/* CATEGORY CAROUSELS */}
-            {['Trending', 'Popular', 'Top Rated', 'New Releases'].map((cat, idx) => {
-              const inCategory = movies.filter((m) => m.category === cat);
-              const list = inCategory.length > 0 ? inCategory : movies;
-              return (
-                <div key={idx} style={{ marginBottom: '40px' }}>
-                  <h3 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '16px' }}>{cat} Movies</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px' }}>
-                    {list.map((movie) => (
-                      <div key={movie.id} style={{ backgroundColor: 'rgba(30, 41, 59, 0.5)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '300px', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setSelectedMovie(movie)} />
-                        <div style={{ padding: '16px' }}>
-                          <h4 style={{ margin: '0 0 6px 0', fontSize: '16px' }}>{movie.title}</h4>
-                          <p style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: '13px' }}>{movie.genre}</p>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700' }}>★ {movie.rating || 0}</span>
-                            <button onClick={() => toggleFavorite(movie.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
-                              {favorites.includes(movie.id) ? '❤️' : '🤍'}
-                            </button>
-                          </div>
+              <h3 style={{ fontSize: '22px', fontWeight: '700', marginBottom: '16px' }}>Available Movies in Catalog</h3>
+              {movies.length === 0 ? (
+                <p style={{ color: '#94a3b8' }}>No movies found in database.</p>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '24px' }}>
+                  {movies.map((movie) => (
+                    <div key={movie.id} style={{ backgroundColor: 'rgba(30, 41, 59, 0.5)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                      <img src={movie.posterUrl} alt={movie.title} style={{ width: '100%', height: '300px', objectFit: 'cover', cursor: 'pointer' }} onClick={() => setSelectedMovie(movie)} />
+                      <div style={{ padding: '16px' }}>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '16px' }}>{movie.title}</h4>
+                        <p style={{ margin: '0 0 8px 0', color: '#94a3b8', fontSize: '13px' }}>{movie.genre}</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700' }}>★ {movie.rating || 0}</span>
+                          <button onClick={() => toggleFavorite(movie.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
+                            {favorites.includes(movie.id) ? '❤️' : '🤍'}
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
         )}
 
@@ -568,10 +497,15 @@ function App() {
                   <label style={filterLabelStyle}>Genre</label>
                   <select value={filterGenre} onChange={(e) => setFilterGenre(e.target.value)} style={selectStyle}>
                     <option value="All">All Genres</option>
-                    <option value="Sci-Fi">Sci-Fi</option>
+                    <option value="Animation">Animation</option>
+                    <option value="Children">Children</option>
+                    <option value="Comedy">Comedy</option>
                     <option value="Action">Action</option>
+                    <option value="Adventure">Adventure</option>
+                    <option value="Romance">Romance</option>
                     <option value="Drama">Drama</option>
-                    <option value="Cyberpunk">Cyberpunk</option>
+                    <option value="Sci-Fi">Sci-Fi</option>
+                    <option value="Thriller">Thriller</option>
                   </select>
                 </div>
 
