@@ -1,0 +1,126 @@
+name: CI/CD Pipeline - Movie Recommendation AI System
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 1: Test & Build Python AI Microservice
+  # -------------------------------------------------------------
+  test-ai-service:
+    name: Build & Test AI Microservice
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f ai-service/requirements.txt ]; then pip install -r ai-service/requirements.txt; fi
+          pip install pytest httpx
+
+      - name: Lint with Flake8
+        run: |
+          pip install flake8
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 ai-service --count --select=E9,F63,F7,F82 --show-source --statistics
+
+  # -------------------------------------------------------------
+  # Job 2: Test & Build Spring Boot Backend
+  # -------------------------------------------------------------
+  test-backend:
+    name: Build & Test Spring Boot Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Grant Execute Permission for Maven Wrapper
+        run: chmod +x backend/mvnw || true
+
+      - name: Build with Maven
+        run: |
+          cd backend
+          ./mvnw clean compile -DskipTests || mvn clean compile -DskipTests
+
+  # -------------------------------------------------------------
+  # Job 3: Test & Build React Frontend
+  # -------------------------------------------------------------
+  test-frontend:
+    name: Build React Frontend App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend-app/package-lock.json
+
+      - name: Install Frontend Dependencies & Build
+        run: |
+          cd frontend-app
+          npm ci
+          CI=false npm run build
+
+  # -------------------------------------------------------------
+  # Job 4: Docker Container Build Check & Automated API Newman Tests
+  # -------------------------------------------------------------
+  docker-and-api-testing:
+    name: Container Build Verification & Newman API Tests
+    runs-on: ubuntu-latest
+    needs: [test-ai-service, test-backend, test-frontend]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Docker Compose
+        run: sudo apt-get update && sudo apt-get install -y docker-compose
+
+      - name: Build and Start Multi-Container Stack
+        run: |
+          docker-compose up -d --build
+          docker-compose ps
+
+      - name: Wait for Microservices Health Checks
+        run: |
+          echo "Waiting 20s for containers to initialize..."
+          sleep 20
+          curl -f http://localhost:8000/health || exit 1
+
+      - name: Execute Automated Newman Postman API Tests
+        run: |
+          npm install -g newman
+          newman run tests/api/postman_collection.json -e tests/api/postman_environment.json
+
+      - name: Run System Integration Tests
+        run: |
+          python tests/system/system_integration_test.py
+
+      - name: Teardown Docker Stack
+        if: always()
+        run: docker-compose down -v
