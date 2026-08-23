@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine('mysql+pymysql://root:@localhost/MovieAIDb')
+engine = create_engine('mysql+pymysql://movieuser:moviepass@localhost:3306/moviedb')
 
 file_path = os.path.join('datasets', 'processed', 'ratings_cleaned.csv')
 

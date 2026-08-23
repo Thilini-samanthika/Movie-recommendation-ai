@@ -49,7 +49,7 @@ services:
     container_name: movie_backend_service
     restart: always
     ports:
-      - "8080:8080"
+      - "8090:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/${MYSQL_DATABASE:-moviedb}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-movieuser}
@@ -75,6 +75,22 @@ services:
     depends_on:
       - backend
       - ai-service
+    networks:
+      - movie_network
+
+  # phpMyAdmin - web UI for browsing the MySQL database
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: movie_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql-db
+      PMA_USER: movieuser
+      PMA_PASSWORD: moviepass
+    ports:
+      - "8099:80"
+    depends_on:
+      - mysql-db
     networks:
       - movie_network
 

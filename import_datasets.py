@@ -2,12 +2,12 @@ import pandas as pd
 from sqlalchemy import create_engine
 import pymysql
 
-# Database connection configuration (XAMPP MySQL)
-DB_USER = 'root'
-DB_PASSWORD = ''
+# Database connection configuration (Docker MySQL - matches docker-compose.yml)
+DB_USER = 'movieuser'
+DB_PASSWORD = 'moviepass'
 DB_HOST = 'localhost'
 DB_PORT = '3306'
-DB_NAME = 'movie_ai_db'
+DB_NAME = 'moviedb'
 
 engine = create_engine(f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
@@ -30,8 +30,11 @@ try:
     movies_df = movies_df.rename(columns=column_mapping)
 
     # Set default values for optional missing fields
+    # NOTE: leave poster_url as None (not a hardcoded image) - every movie was
+    # showing the same poster because this used to default to one fixed URL.
+    # Run update_posters_tmdb.py after this import to fill in real posters.
     if 'poster_url' not in movies_df.columns:
-        movies_df['poster_url'] = "https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_.jpg"
+        movies_df['poster_url'] = None
     if 'description' not in movies_df.columns:
         movies_df['description'] = "Movie description curated by AI Recommendation Engine."
     if 'release_year' not in movies_df.columns:

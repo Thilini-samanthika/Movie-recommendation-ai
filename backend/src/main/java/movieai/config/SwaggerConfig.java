@@ -18,7 +18,7 @@ public class SwaggerConfig {
                         .version("1.0")
                         .description("REST API Documentation for Intelligent Movie Recommendation System")
                         .contact(new Contact()
-                                .name("Horizon Campus - Member 2")
+                                .name("Horizon Campus ")
                                 .email("backend@horizon.ac.lk")));
     }
 }

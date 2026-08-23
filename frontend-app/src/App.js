@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Backend Base URLs
-const BASE_URL = 'http://localhost:8080/api';          // Spring Boot backend (movies, auth, favorites)
+const BASE_URL = 'http://localhost:8090/api';          // Spring Boot backend (movies, auth, favorites)
 const AI_URL = 'http://127.0.0.1:8000';                 // FastAPI recommendation engine
 
 function App() {
@@ -77,7 +77,7 @@ function App() {
       }
     } catch (error) {
       console.error('Error fetching movies from backend:', error);
-      showToast('⚠️ Could not connect to backend');
+      showToast(' Could not connect to backend');
     }
   };
 
@@ -99,7 +99,7 @@ function App() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!authName || !authEmail || !authPassword) {
-      showToast('❌ Please fill in all fields!');
+      showToast(' Please fill in all fields!');
       return;
     }
 
@@ -120,7 +120,7 @@ function App() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!authEmail || !authPassword) {
-      showToast('❌ Please fill in all fields!');
+      showToast(' Please fill in all fields!');
       return;
     }
 
@@ -152,11 +152,11 @@ function App() {
         fetchAiRecommendations(currentUserId, 'Sci-Fi');
 
         setActiveTab(isAdmin ? 'admin' : 'dashboard');
-        showToast(`👤 Welcome back, ${authEmail}!`);
+        showToast(` Welcome back, ${authEmail}!`);
       }
     } catch (error) {
       console.error('Login failed:', error);
-      showToast('❌ Invalid Username or Password!');
+      showToast(' Invalid Username or Password!');
     }
   };
 
@@ -212,7 +212,7 @@ function App() {
   // ---------- 5. Toggle Favorite (backend-backed) ----------
   const toggleFavorite = async (movieId) => {
     if (!isLoggedIn) {
-      showToast('⚠️ Please login to add favorites!');
+      showToast(' Please login to add favorites!');
       setActiveTab('login');
       return;
     }
@@ -234,11 +234,11 @@ function App() {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setFavorites([...favorites, movieId]);
-        showToast('❤️ Added to Favorites');
+        showToast(' Added to Favorites');
       }
     } catch (error) {
       console.error('Favorite toggle error:', error);
-      showToast('❌ Error updating favorites');
+      showToast(' Error updating favorites');
     }
   };
 
@@ -250,7 +250,7 @@ function App() {
       showToast('Removed from Watchlist');
     } else {
       setWatchlist([...watchlist, { id: movieId, watched: false }]);
-      showToast('📌 Added to Watchlist');
+      showToast(' Added to Watchlist');
     }
   };
 
@@ -759,7 +759,7 @@ function App() {
                   ❤️ Favorite
                 </button>
                 <button onClick={() => toggleWatchlist(selectedMovie.id)} style={{ backgroundColor: '#38bdf8', color: '#0f172a', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' }}>
-                  📌 Watchlist
+                   Watchlist
                 </button>
                 <button onClick={() => setSelectedMovie(null)} style={{ backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #334155', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer' }}>
                   Close

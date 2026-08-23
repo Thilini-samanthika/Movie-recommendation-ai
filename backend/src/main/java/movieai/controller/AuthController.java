@@ -47,7 +47,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername()).orElse(null);
+        // Accept either a username or an email in the "username" field (matches the "Username or Email" UI field)
+        User user = userRepository.findByUsername(request.getUsername())
+                .or(() -> userRepository.findByEmail(request.getUsername()))
+                .orElse(null);
 
         if (user != null && passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             String token = jwtUtils.generateToken(user.getUsername());

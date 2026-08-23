@@ -2,10 +2,9 @@ import axios from 'axios';
 
 // Spring Boot Backend Base URL
 const API = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: 'http://localhost:8090/api',
 });
 
-// Request එකක් යද්දී LocalStorage එකේ JWT Token එකක් තිබේ නම් එය Header එකට එක් කිරීම
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem('token');
   if (token) {
