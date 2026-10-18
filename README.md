@@ -291,17 +291,28 @@ From the repository root, `npm run build` also invokes the frontend build.
 
 ##  Screenshots
 
-Movie Dashboard
+Explore the user interface and key features of CINEMA AI.
 
-<img width="200" height="300" alt="dashboard" src="https://github.com/user-attachments/assets/c9d1fb8a-7176-4828-ae49-d7783d26deab" />
+###  Home & Authentication
+| Registration | Login | Home Page |
+|:---:|:---:|:---:|
+| <img width="293" height="325" alt="image" src="https://github.com/user-attachments/assets/c0f8459c-5a5d-43e6-a158-daa91ba8a118" />|<img width="302" height="299" alt="image" src="https://github.com/user-attachments/assets/73fd1333-cf36-482d-9584-b9f3fa6e83eb" />| <img width="200" height="300" alt="image" src="https://github.com/user-attachments/assets/e7fb6d7b-6548-4d8b-b10d-c4c4b2909a32" />
 
-Explainable AI Recommendation
 
-<img width="300" height="200" alt="explainable-ai" src="https://github.com/user-attachments/assets/a4bf2946-5e35-42ef-8889-73a482915e7e" />
+###  Movie Discovery & AI Recommendations
+| User Dashboard | AI Recommendations |
+|:---:|:---:|
+| <img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/9782faf5-a3d1-4c17-b9f0-c601ced522b2" /> | <img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/7bcd444e-a795-4d61-bc1b-e0efac018397" />|
 
-Watchlist
+###  Personalized Experience
+| Movie Details | Watchlist |
+|:---:|:---:|
+| <img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/590970e8-bd65-45a1-b8d5-beeb14217af1" /> | <img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/29adbfb9-7dd6-4b6b-aa98-bd05e686eebf" />|
 
-<img width="200" height="300" alt="watchlist" src="https://github.com/user-attachments/assets/9fb756b8-9ba0-4886-ab3c-4e68fb944810" />
+###  Administration & Streaming
+| Admin Dashboard | Legal Streaming |
+|:---:|:---:|
+| <img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/3fdbaaa7-2726-46e0-aafb-bd631b89bf23" />| <img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/8aac412e-d133-4965-a19f-2ba923c3820c" />|
 
 
 ##  Security and Legal Content
