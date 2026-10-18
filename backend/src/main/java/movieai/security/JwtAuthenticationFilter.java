@@ -21,6 +21,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private movieai.repository.UserRepository userRepository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -30,9 +33,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtUtils.validateToken(token)) {
             String username = jwtUtils.getUsernameFromToken(token);
 
+            java.util.List<org.springframework.security.core.GrantedAuthority> authorities = userRepository.findByUsername(username)
+                    .map(u -> java.util.List.<org.springframework.security.core.GrantedAuthority>of(
+                            new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                                    u.getRole() != null ? u.getRole() : "ROLE_USER"
+                            )
+                    ))
+                    .orElseGet(ArrayList::new);
+
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
-            
+                    new UsernamePasswordAuthenticationToken(username, null, authorities);
+
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);

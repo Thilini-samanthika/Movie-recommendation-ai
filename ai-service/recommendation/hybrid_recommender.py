@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -32,16 +33,21 @@ def build_model(movie_data):
     tfidf_matrix = tfidf.fit_transform(movie_data["content"])
     content_similarity = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-    # Normalize titles (trim + lowercase) so lookups aren't case/whitespace sensitive
-    movie_indices = pd.Series(
+
+    clean_series = pd.Series(
         movie_data.index, index=movie_data["clean_title"].str.strip().str.lower()
     )
-    movie_indices = movie_indices[~movie_indices.index.duplicated(keep="first")]
+    if "title" in movie_data.columns:
+        raw_series = pd.Series(
+            movie_data.index, index=movie_data["title"].str.strip().str.lower()
+        )
+        combined = pd.concat([clean_series, raw_series])
+        movie_indices = combined[~combined.index.duplicated(keep="first")]
+    else:
+        movie_indices = clean_series[~clean_series.index.duplicated(keep="first")]
 
     return content_similarity, movie_indices
 
-
-# Load once when this module is imported
 movie_data, ratings = load_data()
 content_similarity, movie_indices = build_model(movie_data)
 explainer = RecommendationExplainer(
@@ -66,14 +72,26 @@ def collaborative_score(movie_id):
 
 
 def hybrid_recommendation(title, top_n=10):
-    # Normalize the incoming title the same way the index was built,
-    # so "toy story", "Toy Story", " Toy Story " all match correctly.
+
     normalized_title = title.strip().lower()
 
     if normalized_title not in movie_indices:
-        return "Movie not found."
+
+        stripped = re.sub(r"\s*\(\d{4}\)$", "", normalized_title).strip()
+        if stripped in movie_indices:
+            normalized_title = stripped
+        else:
+
+            candidates = [t for t in movie_indices.index if normalized_title in t or (len(t) > 3 and t in normalized_title)]
+            if candidates:
+                normalized_title = candidates[0]
+            else:
+                return "Movie not found."
 
     scores = get_content_scores(normalized_title)
+    source_movie = movie_data.iloc[movie_indices[normalized_title]]
+    source_genres = source_movie.get("genres", "")
+    source_display_title = source_movie.get("clean_title", normalized_title.title())
 
     recommendations = []
 
@@ -83,31 +101,37 @@ def hybrid_recommendation(title, top_n=10):
         hybrid = similarity * 0.7 + collab * 0.3
 
         explanation = explainer.explain(
-            source_title=normalized_title,
+            source_title=source_display_title,
             recommended_row=movie,
             content_score=float(similarity),
             collaborative_score=float(collab),
             hybrid_score=float(hybrid),
+            source_genres=source_genres,
         )
 
-        recommendations.append([
-            movie["clean_title"],
-            movie["genres"],
-            round(float(similarity), 3),
-            round(float(collab), 3),
-            round(float(hybrid), 3),
-            explanation["reasons"],
-            explanation["confidence"],
-        ])
+        recommendations.append({
+            "movieId": int(movie["movieId"]) if "movieId" in movie else index,
+            "clean_title": movie["clean_title"],
+            "title": movie.get("title", movie["clean_title"]),
+            "genres": movie["genres"],
+            "year": int(movie["year"]) if "year" in movie and pd.notna(movie["year"]) else None,
+            "content_score": round(float(similarity), 3),
+            "collaborative_score": round(float(collab), 3),
+            "hybrid_score": round(float(hybrid), 3),
+            "score": round(float(hybrid), 3),
+            "reasons": explanation["reasons"],
+            "confidence": explanation["confidence"],
+            "explanation": explanation["explanation"],
+            "matched_genres": explanation["matched_genres"],
+            "contributing_factors": explanation["contributing_factors"],
+            "recommendation_method": explanation["recommendation_method"],
+        })
 
-    recommendations = sorted(recommendations, key=lambda x: x[4], reverse=True)
+    recommendations = sorted(recommendations, key=lambda x: x["hybrid_score"], reverse=True)
 
-    return pd.DataFrame(
-        recommendations[:top_n],
-        columns=["clean_title", "genres", "content_score", "collaborative_score", "hybrid_score", "reasons", "confidence"]
-    )
+    return pd.DataFrame(recommendations[:top_n])
 
 
 if __name__ == "__main__":
     print(hybrid_recommendation("Toy Story"))
-    print(hybrid_recommendation("toy story"))  # case-insensitive test
+    print(hybrid_recommendation("toy story"))

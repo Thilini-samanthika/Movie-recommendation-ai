@@ -19,7 +19,38 @@ public class UserController {
     private UserRepository userRepository;
 
     @Autowired
+    private movieai.repository.ReviewRepository reviewRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    // GET /api/users/me/reviews - Fetch all reviews created by authenticated user
+    @GetMapping("/me/reviews")
+    public ResponseEntity<?> getMyReviews() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return ResponseEntity.status(401).body(java.util.Map.of("error", "Unauthorized"));
+        }
+        User user = userRepository.findByUsername(auth.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body(java.util.Map.of("error", "User not found"));
+        }
+        var reviews = reviewRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        var dtos = reviews.stream().map(r -> movieai.dto.ReviewDto.builder()
+                .id(r.getId())
+                .movieId(r.getMovie().getId())
+                .movieTitle(r.getMovie().getTitle())
+                .userId(user.getId())
+                .username(user.getUsername())
+                .rating(r.getRating())
+                .comment(r.getComment())
+                .reported(r.getReported())
+                .hidden(r.getHidden())
+                .createdAt(r.getCreatedAt())
+                .updatedAt(r.getUpdatedAt())
+                .build()).toList();
+        return ResponseEntity.ok(dtos);
+    }
 
     // 1. GET Logged-in User Profile
     @GetMapping("/profile")
@@ -68,6 +99,16 @@ public class UserController {
     // 3. DELETE User Account by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUserAccount(@PathVariable Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = userRepository.findByUsername(auth.getName()).orElse(null);
+        if (currentUser == null) {
+            return ResponseEntity.status(401).body("Authentication required");
+        }
+
+        if (!currentUser.getId().equals(id) && !"ROLE_ADMIN".equals(currentUser.getRole())) {
+            return ResponseEntity.status(403).body("Unauthorized to delete another user's account");
+        }
+
         if (!userRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }

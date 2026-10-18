@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from recommendation.hybrid_recommender import hybrid_recommendation
+from recommendation.mood_recommender import get_mood_recommendations, MOOD_GENRE_MAP
 from sentiment.sentiment_analyzer import predict_sentiment
 
 app = FastAPI(
@@ -67,6 +68,24 @@ def sentiment(request: SentimentRequest):
     )
     return {
         "sentiment": result
+    }
+
+
+@app.get("/mood-recommendations")
+def mood_recommendations(mood: str, limit: int = 12):
+    result = get_mood_recommendations(mood, top_n=limit)
+    if "error" in result:
+        raise HTTPException(
+            status_code=400,
+            detail=result["message"]
+        )
+    return result
+
+
+@app.get("/moods")
+def list_supported_moods():
+    return {
+        "supported_moods": list(MOOD_GENRE_MAP.keys())
     }
 
 

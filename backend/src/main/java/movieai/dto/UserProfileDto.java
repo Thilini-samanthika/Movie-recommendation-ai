@@ -14,4 +14,6 @@ public class UserProfileDto {
     private String username;
     private String email;
     private String role;
+    private Boolean active;
+    private java.time.LocalDateTime createdAt;
 }

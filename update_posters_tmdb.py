@@ -5,14 +5,14 @@ import pandas as pd
 import requests
 from sqlalchemy import create_engine, text
 
-# Optional: load a local .env file if python-dotenv is installed (pip install python-dotenv)
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
     pass
 
-# 1. TMDB API key - MUST be set as an environment variable (.env file), never hardcoded here
+
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 if not TMDB_API_KEY:
     print("ERROR: TMDB_API_KEY is not set.")
@@ -20,7 +20,7 @@ if not TMDB_API_KEY:
     print("  TMDB_API_KEY=your_real_key_here")
     sys.exit(1)
 
-# 2. MySQL config - MUST match import_datasets.py / docker-compose.yml
+
 DB_USER = os.getenv("DB_USER", "movieuser")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "moviepass")
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -84,7 +84,7 @@ try:
             if i % 200 == 0 or i == total:
                 print(f"Progress: {i}/{total}  (updated={updated}, no_poster={not_found}, failed={failed})")
 
-            time.sleep(0.05)  # stay well under TMDB's rate limit
+            time.sleep(0.05)
 
     print(f"\nDone. Updated {updated} posters, {not_found} had no TMDB poster, {failed} failed.")
 

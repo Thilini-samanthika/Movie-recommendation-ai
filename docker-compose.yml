@@ -16,7 +16,7 @@ services:
     networks:
       - movie_network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 --silent"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,6 +55,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-movieuser}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-moviepass}
       AI_SERVICE_URL: http://ai-service:8000
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.MySQLDialect
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -85,8 +86,8 @@ services:
     restart: always
     environment:
       PMA_HOST: mysql-db
-      PMA_USER: movieuser
-      PMA_PASSWORD: moviepass
+      PMA_USER: ${MYSQL_USER:-movieuser}
+      PMA_PASSWORD: ${MYSQL_PASSWORD:-moviepass}
     ports:
       - "8099:80"
     depends_on:
