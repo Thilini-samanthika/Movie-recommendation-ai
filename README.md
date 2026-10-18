@@ -296,7 +296,7 @@ Explore the user interface and key features of CINEMA AI.
 ###  Home & Authentication
 | Registration | Login | Home Page |
 |:---:|:---:|:---:|
-| <img width="293" height="325" alt="image" src="https://github.com/user-attachments/assets/c0f8459c-5a5d-43e6-a158-daa91ba8a118" />|<img width="302" height="299" alt="image" src="https://github.com/user-attachments/assets/73fd1333-cf36-482d-9584-b9f3fa6e83eb" />| <img width="200" height="300" alt="image" src="https://github.com/user-attachments/assets/e7fb6d7b-6548-4d8b-b10d-c4c4b2909a32" />
+| <img width="200" height="300" alt="image" src="https://github.com/user-attachments/assets/c0f8459c-5a5d-43e6-a158-daa91ba8a118" />|<img width="200" height="300" alt="image" src="https://github.com/user-attachments/assets/73fd1333-cf36-482d-9584-b9f3fa6e83eb" />| <img width="200" height="300" alt="image" src="https://github.com/user-attachments/assets/e7fb6d7b-6548-4d8b-b10d-c4c4b2909a32" />
 
 
 ###  Movie Discovery & AI Recommendations
@@ -321,14 +321,6 @@ Explore the user interface and key features of CINEMA AI.
 - Only stream content you have permission to distribute or access.
 - Never commit real `.env` files, secrets, or database dumps containing personal information.
 - Review exposed database and administration ports, CORS, token handling, and default credentials before deployment.
-
-##  Possible Next Improvements
-
-- Add browser-based end-to-end tests for registration, login, recommendations, watchlists, and playback.
-- Strengthen security configuration and production secret management.
-- Measure recommendation quality with reproducible offline evaluation.
-- Add CI checks for all three services, observability, and deployment documentation.
-- Capture real application screenshots and a short demo video.
 
 ##  What This Project Demonstrates
 
