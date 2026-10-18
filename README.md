@@ -1,4 +1,4 @@
-# 🎬 CINEMA AI — Intelligent Movie Recommendation System
+#  CINEMA AI — Intelligent Movie Recommendation System
 
 **A Dockerized full-stack movie discovery, recommendation, and authorized-streaming application.**
 
@@ -6,7 +6,7 @@ Built with **React**, **Spring Boot**, **Python/FastAPI**, **MySQL 8**, and **Ng
 
 > **Verification:** Local frontend tests **11/11**, backend tests **52**, and AI tests **5** were reported passing in October 2026; the React production build compiled successfully. These are local test results, not a claim of public production readiness.
 
-## ✨ Features
+##  Features
 
 - **Authentication:** Account registration, login, JWT-based request authentication.
 - **Movie discovery:** Catalog browsing, movie search, poster images, genres, release years, and movie details.
@@ -20,7 +20,7 @@ Built with **React**, **Spring Boot**, **Python/FastAPI**, **MySQL 8**, and **Ng
 
 > Availability and access to specific features depend on user role, backend configuration, and the available catalog. Streaming authorization does not confer rights to arbitrary commercial movies.
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```mermaid
 flowchart TB
@@ -74,7 +74,7 @@ sequenceDiagram
     UI-->>User: Render results
 ```
 
-## 🧠 AI Recommendation Design
+##  AI Recommendation Design
 
 The supplied Python implementation includes:
 
@@ -100,7 +100,7 @@ The supplied Python implementation includes:
 
 FastAPI interactive documentation is typically available at **http://localhost:8000/docs** while the service is running.
 
-## 🗃️ Data Model (High-Level)
+##  Data Model (High-Level)
 
 The Java entity classes define `User`, `Movie`, `Review`, `Watchlist`, `Favorite`, `PlaybackProgress`, and `AdminAuditLog`.
 
@@ -151,7 +151,7 @@ erDiagram
 
 This is a **simplified conceptual ER diagram** derived from Java entity fields, not a database-exported physical schema. Playback progress refers to legal-film identifiers (`filmId`), rather than necessarily referencing the `Movie` table.
 
-## 🔌 Backend API Overview
+##  Backend API Overview
 
 Representative controller route groups found in the Java source:
 
@@ -169,9 +169,9 @@ Representative controller route groups found in the Java source:
 | `/api/admin` | Administrative operations |
 | `/api/v1/health` | Backend health endpoint |
 
-**Note:** Some routes require authentication or admin privileges. Inspect controller method annotations and DTOs for exact request bodies, authorization rules, and HTTP methods.
+Some routes require authentication or admin privileges. Inspect controller method annotations and DTOs for exact request bodies, authorization rules, and HTTP methods.
 
-## 📂 Repository Structure
+##  Repository Structure
 
 ```text
 Movie-recommendation-ai/
@@ -216,7 +216,7 @@ Movie-recommendation-ai/
 └── docker-compose.yml
 ```
 
-## 🚀 Installation and Running
+##  Installation and Running
 
 ### Prerequisites
 
@@ -262,7 +262,7 @@ docker compose down
 
 Do **not** use `docker compose down -v` unless you intend to remove the named MySQL data volume.
 
-## 🧪 Tests and Build
+##  Tests and Build
 
 ### Frontend
 
@@ -289,25 +289,29 @@ From the repository root, `npm run build` also invokes the frontend build.
 
 **68 automated tests passed** across these application areas. The React test runner also reported a non-failing Jest open-handles warning. End-to-end coverage, security testing, and deployment hardening remain separate tasks.
 
-## 📸 Screenshots
+##  Screenshots
 
-Add actual screenshots to `docs/screenshots/` and replace these placeholders:
+Movie Dashboard
 
-```markdown
-![Movie Dashboard](docs/screenshots/dashboard.png)
-![Explainable AI Recommendation](docs/screenshots/explainable-ai.png)
-![Watchlist](docs/screenshots/watchlist.png)
-![Continue Watching](docs/screenshots/continue-watching.png)
-```
+<img width="200" height="300" alt="dashboard" src="https://github.com/user-attachments/assets/c9d1fb8a-7176-4828-ae49-d7783d26deab" />
 
-## 🔐 Security and Legal Content
+Explainable AI Recommendation
+
+<img width="300" height="200" alt="explainable-ai" src="https://github.com/user-attachments/assets/a4bf2946-5e35-42ef-8889-73a482915e7e" />
+
+Watchlist
+
+<img width="200" height="300" alt="watchlist" src="https://github.com/user-attachments/assets/9fb756b8-9ba0-4886-ab3c-4e68fb944810" />
+
+
+##  Security and Legal Content
 
 - JWT authentication and authorization are implemented in the backend; review role checks and security filters before public release.
 - Only stream content you have permission to distribute or access.
 - Never commit real `.env` files, secrets, or database dumps containing personal information.
 - Review exposed database and administration ports, CORS, token handling, and default credentials before deployment.
 
-## 🗺️ Possible Next Improvements
+##  Possible Next Improvements
 
 - Add browser-based end-to-end tests for registration, login, recommendations, watchlists, and playback.
 - Strengthen security configuration and production secret management.
@@ -315,7 +319,7 @@ Add actual screenshots to `docs/screenshots/` and replace these placeholders:
 - Add CI checks for all three services, observability, and deployment documentation.
 - Capture real application screenshots and a short demo video.
 
-## 🎓 What This Project Demonstrates
+##  What This Project Demonstrates
 
 **Full-stack engineering · REST APIs · JWT authentication · relational data modeling · Python ML integration · Docker Compose · automated testing · debugging · technical documentation**
 
